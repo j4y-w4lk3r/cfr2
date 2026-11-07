@@ -58,11 +58,17 @@ func main() {
 	gfs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	cfgPath := gfs.String("c", "", "config file (default ~/.config/cfr2/config.toml or $CFR2_CONFIG)")
 	bucket := gfs.String("b", "", "bucket (default: default_bucket)")
+	showV := gfs.Bool("v", false, "print version and exit")
+	showVersion := gfs.Bool("version", false, "print version and exit")
 	if err := gfs.Parse(os.Args[1:]); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return
 		}
 		os.Exit(2)
+	}
+	if *showV || *showVersion {
+		fmt.Printf("cfr2 %s (commit %s, built %s)\n", version, commit, date)
+		return
 	}
 	if gfs.NArg() == 0 {
 		fmt.Fprint(os.Stderr, usage)
