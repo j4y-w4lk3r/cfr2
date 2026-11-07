@@ -132,7 +132,7 @@ function M:entry(job)
 	if action == "browse" then
 		local script = opts.browse
 			or (os.getenv("HOME") .. "/.config/yazi/plugins/cfr2.yazi/cfr2-browse.sh")
-		run_in_terminal({ "bash", script, job.args[2] or opts.bucket or "", current_dir() })
+		run_in_terminal({ "env", "CFR2_BIN=" .. opts.bin, "bash", script, job.args[2] or opts.bucket or "", current_dir() })
 		refresh(opts)
 	elseif action == "push" or action == "push-dated" then
 		local files = selected_paths()
