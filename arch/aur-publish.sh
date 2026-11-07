@@ -17,6 +17,6 @@ sed -e "s/^pkgver=.*/pkgver=$VER/" -e "s/^pkgrel=.*/pkgrel=1/" \
     -e "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('$arm')/" "$HERE/PKGBUILD" > PKGBUILD
 makepkg --printsrcinfo > .SRCINFO
 git add PKGBUILD .SRCINFO
-git -c user.name=j4y -c user.email="$(git -C "$HERE" config user.email)" commit -q -m "cfr2-bin: $VER"
+git -c user.name=j4y -c user.email="${AUR_EMAIL:-$(git -C "$HERE" config user.email)}" commit -q -m "cfr2-bin: $VER"
 git push -q origin HEAD:master
 echo "cfr2-bin $VER is on the AUR: https://aur.archlinux.org/packages/cfr2-bin"
