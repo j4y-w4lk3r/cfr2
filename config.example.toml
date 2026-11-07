@@ -1,0 +1,38 @@
+#   keyhole:NAME   keyhole entry, username = R2 access key id, password = secret access key
+#   bao:MOUNT/PATH OpenBao KV v2 entry with access_key_id and secret_access_key
+#   env:PREFIX     PREFIX_ACCESS_KEY_ID and PREFIX_SECRET_ACCESS_KEY
+
+account_id     = "your-cloudflare-account-id"
+default_bucket = "my-backup"
+# jurisdiction = "eu"          # only for EU-jurisdiction buckets
+
+# for bucket create/delete and the trash rule (an R2 token with Admin Read & Write)
+# admin_credentials = "keyhole:r2-admin"
+
+[keyhole]
+# NAME is appended. "keyhole ask" uses a running keyhole daemon (one touch per session).
+command = "keyhole get /path/to/vault.age -i /path/to/identity.txt"
+
+[bao]
+addr_file  = "~/.config/openbao.addr"
+token_file = "~/.config/openbao.token"
+
+[encrypt]
+default        = "age"                      # age | gpg | none
+age_recipients = ["age1yourrecipient..."]  # or paths to recipient files
+age_identities = ["~/.config/age/identity.txt"]
+gpg_recipients = []                         # key ids, only for --enc gpg
+
+[usage]
+token = "keyhole:cf-analytics-read"         # Cloudflare API token: Account Analytics Read
+
+[buckets.my-backup]
+credentials = "keyhole:r2-my-backup-rw"
+
+[buckets.my-secrets]
+credentials = "keyhole:r2-my-secrets-rw"
+share       = false                         # never sign share links here
+
+# [[sync]]                                  # folders that cfr2 status / the yazi markers compare
+# local  = "~/notes"
+# remote = "my-backup:notes/"
