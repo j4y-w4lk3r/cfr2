@@ -1,0 +1,77 @@
+# GoReleaser for cfr2. Run locally (see RELEASING.md):
+#   GITHUB_TOKEN=... HOMEBREW_TAP_GITHUB_TOKEN=... goreleaser release --clean
+version: 2
+project_name: cfr2
+
+before:
+  hooks:
+    - go mod tidy
+    - go test -count=1 ./...
+
+builds:
+  - id: cfr2
+    main: ./cmd/cfr2
+    binary: cfr2
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: cfr2
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+    files:
+      - README.md
+      - LICENSE*
+      - config.example.toml
+      - plugins/**/*
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  use: github
+
+brews:
+  - name: cfr2
+    repository:
+      owner: j4y-w4lk3r
+      name: homebrew-cfr2
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/j4y-w4lk3r/cfr2
+    description: "Cloudflare R2 CLI: encrypted push/pull, keyhole/OpenBao secrets, trash, checksums, yazi plugin"
+    license: MIT
+    commit_author:
+      name: j4y
+      email: 278006118+j4y-w4lk3r@users.noreply.github.com
+    commit_msg_template: "cfr2: bump to {{ .Tag }}"
+    directory: Formula
+    install: |
+      bin.install "cfr2"
+      pkgshare.install "plugins/cfr2.yazi"
+      pkgshare.install "config.example.toml"
+    caveats: |
+      yazi plugin: ln -sfn #{opt_pkgshare}/cfr2.yazi ~/.config/yazi/plugins/cfr2.yazi
+    test: |
+      assert_match "cfr2", shell_output("#{bin}/cfr2 version")
+    dependencies:
+      - name: age
+
+release:
+  draft: false
+  prerelease: auto
+  header: |
+    Pre-built binaries for macOS and Linux (amd64 + arm64).
+
+    - Homebrew: `brew install j4y-w4lk3r/cfr2/cfr2`
+    - Arch Linux (AUR): `yay -S cfr2-bin`
