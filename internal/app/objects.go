@@ -442,10 +442,16 @@ func (a *App) Trash(ctx context.Context, args []string) error {
 	sort.Slice(page.Objects, func(i, j int) bool { return page.Objects[i].Key > page.Objects[j].Key })
 	switch verb {
 	case "ls", "list":
-		days, _ := c.TrashRule(ctx)
-		if days > 0 {
+		rc := c
+		if ac, err := a.AdminClient(ctx, c.Bucket); err == nil {
+			rc = ac // bucket-scoped keys may not read lifecycle rules
+		}
+		switch days, err := rc.TrashRule(ctx); {
+		case err != nil:
+			fmt.Fprintln(a.Err, "(trash rule: unknown, this key cannot read bucket rules)")
+		case days > 0:
 			fmt.Fprintf(a.Err, "(R2 deletes trash after %d days)\n", days)
-		} else {
+		default:
 			fmt.Fprintln(a.Err, "(no trash rule yet: `cfr2 bucket trash-rule` makes R2 empty it after 30 days)")
 		}
 		for _, o := range page.Objects {
