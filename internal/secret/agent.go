@@ -33,11 +33,15 @@ type agentResp struct {
 
 // AgentSocket is the socket path for this user.
 func AgentSocket() string {
-	base := os.Getenv("XDG_RUNTIME_DIR")
-	if base == "" {
-		base = filepath.Join(os.TempDir(), fmt.Sprintf("cfr2-%d", os.Getuid()))
+	if base := os.Getenv("XDG_RUNTIME_DIR"); base != "" {
+		return filepath.Join(base, "cfr2", "agent.sock")
 	}
-	return filepath.Join(base, "cfr2", "agent.sock")
+	// macOS has no XDG_RUNTIME_DIR and $TMPDIR differs between Terminal and ssh;
+	// the user cache folder is the same for every process of the user.
+	if dir, err := os.UserCacheDir(); err == nil {
+		return filepath.Join(dir, "cfr2", "agent.sock")
+	}
+	return filepath.Join(os.TempDir(), fmt.Sprintf("cfr2-%d", os.Getuid()), "agent.sock")
 }
 
 // ServeAgent runs the agent until idle passes without a request, or ctx ends.
